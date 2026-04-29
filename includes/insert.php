@@ -1,32 +1,24 @@
 <?php
-
-require_once __DIR__ . '/db.php';
+require_once 'db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'] ?? '';
-    $surname = $_POST['surname'] ?? '';
+    $name       = $_POST['name'] ?? '';
+    $surname    = $_POST['surname'] ?? '';
     $middlename = $_POST['middlename'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $contact = $_POST['contact'] ?? '';
+    $address    = $_POST['address'] ?? '';
+    $contact    = $_POST['contact_number'] ?? '';
 
-    try {
-        $sql = "INSERT INTO students (name, surname, middlename, address, contact_number) 
-                VALUES (:name, :surname, :middlename, :address, :contact)";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':name'       => $name,
-            ':surname'    => $surname,
-            ':middlename' => $middlename,
-            ':address'    => $address,
-            ':contact'    => $contact
-        ]);
+    $stmt = $conn->prepare("INSERT INTO students (name, surname, middlename, address, contact_number) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $name, $surname, $middlename, $address, $contact);
 
-        header("Location: ../public/index.php?status=success");
+    if ($stmt->execute()) {
+        header("Location: ../index.php?status=success&section=create");
         exit();
-        
-    } catch (PDOException $e) {
-        echo "Database Error: " . $e->getMessage();
+    } else {
+        echo "Error: " . $stmt->error;
     }
+
+    $stmt->close();
 }
-?>
+
+$conn->close();
